@@ -1,6 +1,6 @@
 {
   "name": "vitesse-webext",
-  "displayName": "Vitesse WebExt",
+  "displayName": "AI prompt syncer",
   "version": "0.0.1",
   "private": true,
   "packageManager": "pnpm@9.7.1",
