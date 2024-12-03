@@ -1,138 +1,87 @@
-# WebExtension Vite Starter
+# 🔮 AI Prompt Syncer
 
-A [Vite](https://vitejs.dev/) powered WebExtension ([Chrome](https://developer.chrome.com/docs/extensions/reference/), [FireFox](https://addons.mozilla.org/en-US/developers/), etc.) starter template.
+**AI Prompt Syncer** 是一款适配 **Chrome** 和 **Firefox** 的浏览器插件，用于管理和同步 AI 提示词，支持与 **Notion** 数据库无缝集成。插件提供离线缓存、快速搜索和一键复制功能，帮助用户高效管理和使用提示词。
 
-<p align="center">
-<sub>Popup</sub><br/>
-<img width="655" src="https://user-images.githubusercontent.com/11247099/126741643-813b3773-17ff-4281-9737-f319e00feddc.png"><br/>
-<sub>Options Page</sub><br/>
-<img width="655" src="https://user-images.githubusercontent.com/11247099/126741653-43125b62-6578-4452-83a7-bee19be2eaa2.png"><br/>
-<sub>Inject Vue App into the Content Script</sub><br/>
-<img src="https://user-images.githubusercontent.com/11247099/130695439-52418cf0-e186-4085-8e19-23fe808a274e.png">
-</p>
+---
 
-## Features
 
-- ⚡️ **Instant HMR** - use **Vite** on dev (no more refresh!)
-- 🥝 Vue 3 - Composition API, [`<script setup>` syntax](https://github.com/vuejs/rfcs/blob/master/active-rfcs/0040-script-setup.md) and more!
-- 💬 Effortless communications - powered by [`webext-bridge`](https://github.com/antfu/webext-bridge) and [VueUse](https://github.com/antfu/vueuse) storage
-- 🌈 [UnoCSS](https://github.com/unocss/unocss) - The instant on-demand Atomic CSS engine.
-- 🦾 [TypeScript](https://www.typescriptlang.org/) - type safe
-- 📦 [Components auto importing](./src/components)
-- 🌟 [Icons](./src/components) - Access to icons from any iconset directly
-- 🖥 Content Script - Use Vue even in content script
-- 🌍 WebExtension - isomorphic extension for Chrome, Firefox, and others
-- 📃 Dynamic `manifest.json` with full type support
+## ✨ 功能亮点
 
-## Pre-packed
+- **适配多平台：** 完美支持 Chrome 和 Firefox 浏览器。
+- **与 Notion 同步：** 自动将提示词与 Notion 数据库实时同步，保持内容一致性。
+- **离线模式：** 提示词使用 **IndexDB** 本地缓存，无需等待 Notion 连接。
+- **快捷键搜索：** 通过自定义快捷键快速调出搜索界面。
+- **一键复制：** 轻松复制提示词到剪贴板，用于聊天工具或其他应用。
+- **标签管理：** 支持标签分类，方便组织和查找提示词。
+  
+## 🛠 技术特性
+- 使用 **Vue 3 + Vite** 构建，性能高效，代码现代化。
+- **Pinia** 状态管理，轻松处理数据流。
+- **Dexie.js** 管理本地数据库，实现高效的提示词存储与检索。
+- 通过 **Notion API** 实现云端同步，支持提示词的双向更新。
+- **HMR（热模块替换）：** 开发时实时更新，无需重载插件。
 
-### WebExtension Libraries
 
-- [`webextension-polyfill`](https://github.com/mozilla/webextension-polyfill) - WebExtension browser API Polyfill with types
-- [`webext-bridge`](https://github.com/antfu/webext-bridge) - effortlessly communication between contexts
-
-### Vite Plugins
-
-- [`unplugin-auto-import`](https://github.com/antfu/unplugin-auto-import) - Directly use `browser` and Vue Composition API without importing
-- [`unplugin-vue-components`](https://github.com/antfu/vite-plugin-components) - components auto import
-- [`unplugin-icons`](https://github.com/antfu/unplugin-icons) - icons as components
-  - [Iconify](https://iconify.design) - use icons from any icon sets [🔍Icônes](https://icones.netlify.app/)
-
-### Vue Plugins
-
-- [VueUse](https://github.com/antfu/vueuse) - collection of useful composition APIs
-
-### UI Frameworks
-
-- [UnoCSS](https://github.com/unocss/unocss) - the instant on-demand Atomic CSS engine
-
-### Coding Style
-
-- Use Composition API with [`<script setup>` SFC syntax](https://github.com/vuejs/rfcs/pull/227)
-- [ESLint](https://eslint.org/) with [@antfu/eslint-config](https://github.com/antfu/eslint-config), single quotes, no semi
-
-### Dev tools
-
-- [TypeScript](https://www.typescriptlang.org/)
-- [pnpm](https://pnpm.js.org/) - fast, disk space efficient package manager
-- [esno](https://github.com/antfu/esno) - TypeScript / ESNext node runtime powered by esbuild
-- [npm-run-all](https://github.com/mysticatea/npm-run-all) - Run multiple npm-scripts in parallel or sequential
-- [web-ext](https://github.com/mozilla/web-ext) - Streamlined experience for developing web extensions
-
-## Use the Template
-
-### GitHub Template
-
-[Create a repo from this template on GitHub](https://github.com/antfu/vitesse-webext/generate).
-
-### Clone to local
-
-If you prefer to do it manually with the cleaner git history
-
-> If you don't have pnpm installed, run: npm install -g pnpm
+## 🚀 快速开始
+### 1. 安装插件
+克隆项目到本地：
 
 ```bash
-npx degit antfu/vitesse-webext my-webext
-cd my-webext
-pnpm i
+git clone https://github.com/AI-prompt-syncer/ai-prompt-syncer.git
+cd ai-prompt-syncer
 ```
 
-## Usage
-
-### Folders
-
-- `src` - main source.
-  - `contentScript` - scripts and components to be injected as `content_script`
-  - `background` - scripts for background.
-  - `components` - auto-imported Vue components that are shared in popup and options page.
-  - `styles` - styles shared in popup and options page
-  - `assets` - assets used in Vue components
-  - `manifest.ts` - manifest for the extension.
-- `extension` - extension package root.
-  - `assets` - static assets (mainly for `manifest.json`).
-  - `dist` - built files, also serve stub entry for Vite on development.
-- `scripts` - development and bundling helper scripts.
-
-### Development
-
-```bash
-pnpm dev
+安装依赖:
 ```
-
-Then **load extension in browser with the `extension/` folder**.
-
-For Firefox developers, you can run the following command instead:
-
-```bash
-pnpm dev-firefox
+pnpm install
 ```
-
-`web-ext` auto reload the extension when `extension/` files changed.
-
-> While Vite handles HMR automatically in the most of the case, [Extensions Reloader](https://chrome.google.com/webstore/detail/fimgfedafeadlieiabdeeaodndnlbhid) is still recommended for cleaner hard reloading.
-
-## Using Gitpod
-
-If you have a web browser, you can get a fully pre-configured development environment with one click:
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/antfu/vitesse-webext)
-
-### Build
-
-To build the extension, run
-
-```bash
+构建插件：
+```
 pnpm build
 ```
 
-And then pack files under `extension`, you can upload `extension.crx` or `extension.xpi` to appropriate extension store.
+---
 
-## Credits
 
-[![Volta](https://user-images.githubusercontent.com/904724/195351818-9e826ea9-12a0-4b06-8274-352743cd2047.png)](https://volta.net)
+###  2. 加载插件
 
-This template is originally made for the [volta.net](https://volta.net) browser extension.
+#### Chrome：
+1. 打开 `chrome://extensions/`。
+2. 启用开发者模式。
+3. 点击 **加载已解压的扩展程序**，选择 `extension` 文件夹。
 
-## Variations
+#### Firefox：
+1. 打开 `about:debugging#/runtime/this-firefox`。
+2. 点击 **加载临时附加组件**，选择 `extension` 文件夹中的任意 `.zip` 文件。
 
-This is a variant of [Vitesse](https://github.com/antfu/vitesse), check out the [full variations list](https://github.com/antfu/vitesse#variations).
+### 3. 配置 Notion
+1. 在插件设置中输入你的 **Notion API Token** 和 **Database ID**。
+2. 开启同步功能。
+
+
+## 📸 截图
+### 🔍 快速搜索
+轻松查找和使用提示词。
+<p align="center">
+<sub>index</sub><br/>
+<img width="655" src="https://github.com/user-attachments/assets/83612b33-c52b-47d7-a335-e356dc4e914d"><br/>
+</p>
+
+### ⚡ 离线模式
+即使没有网络，也可以查看和复制提示词。
+
+### ☁ Notion 同步
+提示词自动上传到 Notion 数据库，随时随地访问。
+
+## 🌟 未来改进
+- 支持更多第三方服务（如 Google Sheets）。
+- 添加更多自定义模板支持。
+- 提供跨设备同步功能。
+
+## 📜 开源协议
+本项目基于 **MIT 协议**，欢迎贡献和修改。
+
+
+
+
+
