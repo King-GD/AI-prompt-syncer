@@ -61,7 +61,7 @@ pnpm build
 
 ## 📸 截图
 ### 🔍 快速搜索
-轻松查找和使用提示词,支持图片放大预览。
+轻松查找和使用提示词，支持图片放大预览。
 <p align="center">
 <sub>Index</sub><br/>
 <img width="655" src="https://github.com/user-attachments/assets/83612b33-c52b-47d7-a335-e356dc4e914d"><br/>
