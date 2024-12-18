@@ -8,7 +8,7 @@ import EditPromptForm from './EditPromptForm.vue'
 // 修改接口以匹配数据库类型
 interface PromptCard extends Omit<Prompt, 'createdAt' | 'updatedAt' | 'notionId'> {}
 const { copy, copied } = useClipboard()
-const { addPrompt, getPromptsByType, deletePrompt, updatePrompt } = usePromptDb()
+const { addPrompt, getPromptsByType, deletePrompt, updatePrompt, hasData } = usePromptDb()
 const showAddForm = ref(false)
 const editingPrompt = ref<Prompt | null>(null)
 
@@ -40,7 +40,10 @@ watch(activeTab, (newTab) => {
 })
 
 onMounted(async () => {
-  await loadPrompts(activeTab.value)
+  const dataExists = await hasData()
+  if (dataExists) {
+    await loadPrompts(activeTab.value)
+  }
 })
 
 function handleCopy(content: string): void {

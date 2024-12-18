@@ -50,11 +50,17 @@ export function usePromptDb() {
     return await db.prompts.where('type').equals(type).toArray()
   }
 
+  const hasData = async () => {
+    const count = await db.prompts.count()
+    return count > 0
+  }
+
   return {
     addPrompt,
     deletePrompt,
     updatePrompt,
     getAllPrompts,
     getPromptsByType,
+    hasData,
   }
 }
