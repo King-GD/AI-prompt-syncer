@@ -1,5 +1,5 @@
 {
-  "name": "vitesse-webext",
+  "name": "ai-prompt-syncer",
   "displayName": "AI prompt syncer",
   "version": "0.0.1",
   "private": true,
@@ -47,6 +47,7 @@
     "chokidar": "^3.6.0",
     "cross-env": "^7.0.3",
     "crx": "^5.0.1",
+    "dexie": "^4.0.10",
     "eslint": "^9.9.0",
     "esno": "^4.7.0",
     "fs-extra": "^11.2.0",

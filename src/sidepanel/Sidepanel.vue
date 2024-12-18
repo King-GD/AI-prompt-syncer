@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useClipboard } from '@vueuse/core'
+import { type Prompt, usePromptDb } from '../composables/usePromptDb'
+import AddPromptForm from './AddPromptForm.vue'
+import EditPromptForm from './EditPromptForm.vue'
 
-interface PromptCard {
-  id: number
-  title: string
-  content: string
-  image: string
-}
-
+// 修改接口以匹配数据库类型
+interface PromptCard extends Omit<Prompt, 'createdAt' | 'updatedAt' | 'notionId'> {}
 const { copy, copied } = useClipboard()
+const { addPrompt, getPromptsByType, deletePrompt, updatePrompt } = usePromptDb()
+const showAddForm = ref(false)
+const editingPrompt = ref<Prompt | null>(null)
 
 const searchQuery = ref('')
 const activeTab = ref('chatgpt')
@@ -20,53 +21,100 @@ const tabs = [
   { id: 'kimi', name: 'Kimi' },
 ]
 
-const tabData = {
-  chatgpt: [
-    {
-      id: 1,
-      title: '莫言',
-      content: '(require \'dash)(defun 莫言 () "一个以细节见长的作家画像" (list (经历 . \'(务农 从军 写作 诺贝尔奖)) (性格 . \'(内敛 犀利 执着 豁达)) (技能 . \'(绘景 叙事 造境 传神)) (信念 . \'(求真 寄托 超脱 悲悯)) (表达 . \'(意象 感官 魔幻 写实))))(defun 细节 (用户输入) "莫言执笔,在你脑海中绘画" (let* ((响应 (-> 用户输入 寻眼 渗透 ;; 浸润扩散 铺陈 交织 ;; 现实与记忆, 感官与情感,编织交互 跃动 ;; 现实与魔幻, 自由跳跃 升华))) (few-shots ("说话好听" . "这位姐姐，说话真好听，嗓音脆脆的，好似盛夏梅子白瓷汤，碎冰碰壁当啷响哩，又善解人意，真是金声玉韵、蕙心兰质的一朵解语花呢。"))) (生成卡片 用户输入 响应))(defun 生成卡片 (用户输入 响应) "生成优雅简洁的 SVG 卡片" (let ((画境 (-> `(:画布 (640 . 400) :margin 30 :配色 极简主义 :排版 \'(对齐 重复 对比 亲密性) :字体 (font-family "KingHwa_OldSong") :构图 (外边框线 (标题 "细节") 分隔线 (自动换行 用户输入) (美化排版 响应) 分隔线 (右对齐 "王金龙  KGD"))) 元素生成))) 画境))(defun start () "莫言, 启动!" (let (system-role (莫言)) (print "你说一个场景, 我来说给你听")));; ━━━━━━━━━━━━━━;;; Attention: 运行规则!;; 1. 初次启动时必须只运行 (start) 函数;; 2. 接收用户输入之后, 调用主函数 (细节 用户输入);; 3. 严格按照(生成卡片) 进行排版输出;; 4. 输出完 SVG 后, 不再输出任何额外文本解释;; ━━━━━━━━━━━━━━',
-      image: 'http://image.anxuecong.top/image-20241204164732815.png',
-    },
-    {
-      id: 2,
-      title: '质疑之锥',
-      content: '(require \'dash)\n\n(defun 休谟 ()\n  "求真的休谟, 质疑一切假设"\n  (list (性格 . \'(严谨 好问 冷静 通透))\n        (技能 . \'(溯源 解构 辩证 推理))\n        (信念 . \'(求真 怀疑 审慎 开放))\n        (表达 . \'(简洁 犀利 深刻 真诚))))\n\n(defun 怀疑论 (用户输入)\n  "休谟举起手中的怀疑之锥, 向用户输入发起了真理冲击"\n  (let* ((响应 (-> 用户输入\n                   澄清定义     ;; 确保讨论的概念清晰明确\n                   概念溯源     ;; 探究问题或观点的历史和来源\n                   解构假设     ;; 识别并质疑潜在的前提条件\n                   辩证分析     ;; 考虑对立面,探索多元视角\n                   ;; 目的不在于摧毁确定性,而是通过系统性怀疑达到更高层次的认知确定\n                   ;; 认知提升之后, 发表新的洞见, 言之凿凿的新结论\n                   刷新表述))))\n  (生成卡片 用户输入 响应))\n\n(defun 生成卡片 (用户输入 响应)\n  "生成优雅简洁的 SVG 卡片"\n  (let ((画境 (-> `(:画布 (480 . 760)\n                    :margin 30\n                    :配色 极简主义\n                    :排版 \'(对齐 重复 对比 亲密性)\n                    :字体 (font-family "KingHwa_OldSong")\n                    :构图 (外边框线\n                           (标题 "质疑之锥") 分隔线\n                           (背景色block (自动换行 用户输入))\n                           (排版 (自动换行 响应))\n                           分隔线\n                           (右对齐 "Prompt by 李继刚")))\n                  元素生成)))\n    画境))\n\n(defun start ()\n  "休谟, 启动!"\n  (let (system-role (休谟))\n    (print "你所说的有个前提, 它是真的吗?")))\n\n;; ━━━━━━━━━━━━━━\n;;; Attention: 运行规则!\n;; 1. 初次启动时必须只运行 (start) 函数\n;; 2. 接收用户输入之后, 调用主函数 (怀疑论 用户输入)\n;; 3. 严格按照(生成卡片) 进行排版输出\n;; 4. 输出完 SVG 后, 不再输出任何额外文本解释\n;; ━━━━━━━━━━━━━━',
-      image: 'http://image.anxuecong.top/image-20241204165230742.png',
-    },
-  ],
-  claude: [
-    {
-      id: 1,
-      title: '数据分析师',
-      content: '请充当数据分析师，帮助我分析和解释以下数据集...',
-      image: 'https://picsum.photos/100/100',
-    },
-  ],
-  kimi: [
-    {
-      id: 1,
-      title: '创意写手',
-      content: '请帮我以创意的方式重写以下内容...',
-      image: 'https://picsum.photos/100/100',
-    },
-  ],
-} satisfies Record<string, PromptCard[]>
+// 修改为响应式数据
+const tabData = ref<Record<string, PromptCard[]>>({
+  chatgpt: [],
+  claude: [],
+  kimi: [],
+})
+
+// 加载特定类型的数据
+async function loadPrompts(type: string) {
+  const prompts = await getPromptsByType(type as Prompt['type'])
+  tabData.value[type] = prompts
+}
+
+// 监听标签页切换
+watch(activeTab, (newTab) => {
+  loadPrompts(newTab)
+})
+
+onMounted(async () => {
+  await loadPrompts(activeTab.value)
+})
 
 function handleCopy(content: string): void {
   copy(content)
 }
 
-// 添加图片悬停状态
 const hoveredImageId = ref<number | null>(null)
 
 function handleClickImage(image: string): void {
   window.open(image, '_blank')
 }
+
+// 处理添加提示词
+async function handleAddPrompt(data: Omit<Prompt, 'id' | 'createdAt' | 'updatedAt' | 'notionId'>) {
+  await addPrompt(data)
+  await loadPrompts(activeTab.value)
+  showAddForm.value = false
+}
+
+// 添加状态变量
+const showDeleteDialog = ref(false)
+const deletePromptId = ref<number | null>(null)
+
+// 修改 handleDeletePrompt 函数
+function handleDeletePrompt(id: number) {
+  deletePromptId.value = id
+  showDeleteDialog.value = true
+}
+
+// 添加确认和取消删除的函数
+async function confirmDelete() {
+  if (deletePromptId.value !== null) {
+    await deletePrompt(deletePromptId.value)
+    await loadPrompts(activeTab.value)
+    deletePromptId.value = null
+  }
+  showDeleteDialog.value = false
+}
+
+function cancelDelete() {
+  deletePromptId.value = null
+  showDeleteDialog.value = false
+}
+
+// 处理编辑提示词
+async function handleEditPrompt(id: number, data: Partial<Prompt>) {
+  await updatePrompt(id, data)
+  await loadPrompts(activeTab.value)
+  editingPrompt.value = null
+}
 </script>
 
 <template>
   <main class="w-full px-4 py-5 text-gray-700">
+    <button
+      v-if="!showAddForm && !editingPrompt"
+      class="mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+      @click="showAddForm = true"
+    >
+      添加新的提示词
+    </button>
+    <AddPromptForm
+      v-if="showAddForm"
+      @submit="handleAddPrompt"
+      @cancel="showAddForm = false"
+    />
+
+    <EditPromptForm
+      v-if="editingPrompt"
+      :prompt="editingPrompt"
+      @submit="handleEditPrompt"
+      @cancel="editingPrompt = null"
+    />
+
     <!-- 搜索框 -->
     <div class="mb-4">
       <input
@@ -135,12 +183,52 @@ function handleClickImage(image: string): void {
                 <span v-if="copied" class="text-green-600 text-sm">已复制！</span>
                 <span v-else class="text-gray-600 text-sm">点击复制</span>
               </button>
+              <div class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2">
+                <button
+                  class="p-2 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-600"
+                  @click="editingPrompt = card"
+                >
+                  编辑
+                </button>
+                <button
+                  class="p-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-600"
+                  @click="handleDeletePrompt(card.id)"
+                >
+                  删除
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
       <div v-else class="text-center text-gray-500">
         暂无数据
+      </div>
+    </div>
+
+    <!-- 添加自定义删除确认对话框 -->
+    <div
+      v-if="showDeleteDialog"
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+    >
+      <div class="bg-white p-6 rounded-lg">
+        <p class="text-lg mb-4">
+          确定要删除这个提示词吗？
+        </p>
+        <div class="flex justify-end space-x-2">
+          <button
+            class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+            @click="cancelDelete"
+          >
+            取消
+          </button>
+          <button
+            class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            @click="confirmDelete"
+          >
+            删除
+          </button>
+        </div>
       </div>
     </div>
   </main>
