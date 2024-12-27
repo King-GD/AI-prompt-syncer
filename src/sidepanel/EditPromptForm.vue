@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { Prompt } from '../composables/usePromptDb'
+import { usePromptDb } from '../composables/usePromptDb'
 
 defineOptions({
   name: 'EditPromptForm',
@@ -14,6 +15,13 @@ const emit = defineEmits<{
   (e: 'submit', id: number, data: Partial<Prompt>): void
   (e: 'cancel'): void
 }>()
+
+const { getAllTypes } = usePromptDb()
+const allTypes = ref<string[]>([])
+
+onMounted(async () => {
+  allTypes.value = await getAllTypes()
+})
 
 const form = ref({
   title: props.prompt.title,
@@ -68,20 +76,18 @@ function handleSubmit() {
         </div>
         <div>
           <label class="block text-sm font-medium mb-1">类型</label>
-          <select
-            v-model="form.type"
-            class="w-full px-3 py-2 border rounded-lg"
-          >
-            <option value="chatgpt">
-              ChatGPT
-            </option>
-            <option value="claude">
-              Claude
-            </option>
-            <option value="kimi">
-              Kimi
-            </option>
-          </select>
+          <div class="relative">
+            <input
+              v-model="form.type"
+              type="text"
+              list="type-options"
+              placeholder="选择或输入类型"
+              class="w-full px-3 py-2 border rounded-lg"
+            >
+            <datalist id="type-options">
+              <option v-for="type in allTypes" :key="type" :value="type" />
+            </datalist>
+          </div>
         </div>
         <div class="flex justify-end space-x-2">
           <button

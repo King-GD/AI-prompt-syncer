@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import { type Prompt, usePromptDb } from '../composables/usePromptDb'
 import AddPromptForm from './AddPromptForm.vue'
@@ -8,41 +8,26 @@ import EditPromptForm from './EditPromptForm.vue'
 // 修改接口以匹配数据库类型
 interface PromptCard extends Omit<Prompt, 'createdAt' | 'updatedAt' | 'notionId'> {}
 const { copy, copied } = useClipboard()
-const { addPrompt, getPromptsByType, deletePrompt, updatePrompt, hasData } = usePromptDb()
+const { addPrompt, deletePrompt, updatePrompt, hasData, getAllPrompts } = usePromptDb()
 const showAddForm = ref(false)
 const editingPrompt = ref<Prompt | null>(null)
 
 const searchQuery = ref('')
-const activeTab = ref('chatgpt')
 
-const tabs = [
-  { id: 'chatgpt', name: 'ChatGPT' },
-  { id: 'claude', name: 'Claude' },
-  { id: 'kimi', name: 'Kimi' },
-]
+// 修改数据结构
+const promptList = ref<PromptCard[]>([])
 
-// 修改为响应式数据
-const tabData = ref<Record<string, PromptCard[]>>({
-  chatgpt: [],
-  claude: [],
-  kimi: [],
-})
-
-// 加载特定类型的数据
-async function loadPrompts(type: string) {
-  const prompts = await getPromptsByType(type as Prompt['type'])
-  tabData.value[type] = prompts
+// 修改 loadPrompts 函数，加载所有提示词
+async function loadPrompts() {
+  const prompts = await getAllPrompts()
+  promptList.value = prompts
 }
 
-// 监听标签页切换
-watch(activeTab, (newTab) => {
-  loadPrompts(newTab)
-})
-
+// 修改 onMounted 钩子
 onMounted(async () => {
   const dataExists = await hasData()
   if (dataExists) {
-    await loadPrompts(activeTab.value)
+    await loadPrompts()
   }
 })
 
@@ -59,7 +44,7 @@ function handleClickImage(image: string): void {
 // 处理添加提示词
 async function handleAddPrompt(data: Omit<Prompt, 'id' | 'createdAt' | 'updatedAt' | 'notionId'>) {
   await addPrompt(data)
-  await loadPrompts(activeTab.value)
+  await loadPrompts()
   showAddForm.value = false
 }
 
@@ -77,7 +62,7 @@ function handleDeletePrompt(id: number) {
 async function confirmDelete() {
   if (deletePromptId.value !== null) {
     await deletePrompt(deletePromptId.value)
-    await loadPrompts(activeTab.value)
+    await loadPrompts()
     deletePromptId.value = null
   }
   showDeleteDialog.value = false
@@ -91,8 +76,21 @@ function cancelDelete() {
 // 处理编辑提示词
 async function handleEditPrompt(id: number, data: Partial<Prompt>) {
   await updatePrompt(id, data)
-  await loadPrompts(activeTab.value)
+  await loadPrompts()
   editingPrompt.value = null
+}
+
+// 定义类型颜色映射
+const typeColorMap = ref<{ [key: string]: string }>({})
+
+function getTypeColor(type: string): string {
+  if (!typeColorMap.value[type]) {
+    // 定义一组颜色
+    const colors = ['red', 'green', 'blue', 'yellow', 'purple', 'pink', 'indigo', 'teal', 'orange', 'cyan']
+    const index = Object.keys(typeColorMap.value).length % colors.length
+    typeColorMap.value[type] = `bg-${colors[index]}-200 text-${colors[index]}-800`
+  }
+  return typeColorMap.value[type]
 }
 </script>
 
@@ -128,44 +126,24 @@ async function handleEditPrompt(id: number, data: Partial<Prompt>) {
       >
     </div>
 
-    <div class="mb-4">
-      <div class="flex border-b">
-        <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          class="px-8 py-2 font-medium"
-          :class="[
-            activeTab === tab.id
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-gray-500 hover:text-gray-700',
-          ]"
-          @click="activeTab = tab.id"
-        >
-          {{ tab.name }}
-        </button>
-      </div>
-    </div>
-
-    <!-- 标签页内容 -->
+    <!-- 修改提示词列表的渲染 -->
     <div class="mt-4">
-      <div v-if="tabData[activeTab]?.length" class="space-y-4">
+      <div v-if="promptList.length" class="space-y-4">
         <div
-          v-for="card in tabData[activeTab]"
+          v-for="card in promptList"
           :key="card.id"
           class="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 group relative"
         >
           <div class="flex gap-4">
             <div
-              class="relative w-20 h-20 overflow-visible z-1 hover:z-10"
+              class="relative w-32 h-32 overflow-hidden flex-shrink-0"
               @mouseenter="hoveredImageId = card.id"
               @mouseleave="hoveredImageId = null"
             >
               <img
                 :src="card.image"
                 :alt="card.title"
-                class="rounded-lg object-cover w-20 h-20 transition-all duration-300 ease-out backface-hidden transform-gpu origin-center will-change-transform hover:shadow-xl"
-                :class="[
-                  hoveredImageId === card.id && 'scale-200 translate-x-4 contrast-110 brightness-110']"
+                class="rounded-lg object-cover w-full h-full transition-all duration-300 ease-out"
                 @click="handleClickImage(card.image)"
               >
             </div>
@@ -173,6 +151,13 @@ async function handleEditPrompt(id: number, data: Partial<Prompt>) {
               <h3 class="text-lg font-medium text-gray-900 mb-2">
                 {{ card.title }}
               </h3>
+              <!-- 显示类型标签 -->
+              <span
+                class="px-2 py-1 rounded-full text-xs mb-2 inline-block"
+                :class="getTypeColor(card.type)"
+              >
+                {{ card.type }}
+              </span>
               <p
                 class="text-gray-500 text-sm line-clamp-2 cursor-pointer hover:text-blue-600"
                 @click="handleCopy(card.content)"

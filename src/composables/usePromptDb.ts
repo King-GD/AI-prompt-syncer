@@ -5,7 +5,7 @@ export interface Prompt {
   title: string
   content: string
   image: string
-  type: 'chatgpt' | 'claude' | 'kimi'
+  type: string // 将 type 改为字符串类型
   notionId?: string
   createdAt: Date
   updatedAt: Date
@@ -55,6 +55,15 @@ export function usePromptDb() {
     return count > 0
   }
 
+  const getAllTypes = async () => {
+    const prompts = await db.prompts.toArray()
+    const typeSet = new Set<string>()
+    prompts.forEach((prompt) => {
+      typeSet.add(prompt.type)
+    })
+    return Array.from(typeSet)
+  }
+
   return {
     addPrompt,
     deletePrompt,
@@ -62,5 +71,6 @@ export function usePromptDb() {
     getAllPrompts,
     getPromptsByType,
     hasData,
+    getAllTypes,
   }
 }
