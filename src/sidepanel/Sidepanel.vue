@@ -45,9 +45,14 @@ function handleCopy(content: string): void {
 }
 
 const hoveredImageId = ref<number | null | undefined>(null)
+const previewImage = ref<string | null>(null)
 
 function handleClickImage(image: string): void {
-  window.open(image, '_blank')
+  previewImage.value = image
+}
+
+function closePreview(): void {
+  previewImage.value = null
 }
 
 // 处理添加提示词
@@ -227,6 +232,29 @@ function getTypeColor(type: string): string {
             删除
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- 添加图片预览对话框 -->
+    <div
+      v-if="previewImage"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+      @click="closePreview"
+    >
+      <div class="relative max-w-4xl max-h-[90vh]">
+        <img
+          :src="previewImage"
+          class="max-w-full max-h-[90vh] object-contain rounded-lg"
+          @click.stop
+        >
+        <button
+          class="absolute top-4 right-4 p-2 bg-black bg-opacity-50 rounded-full text-white hover:bg-opacity-75"
+          @click="closePreview"
+        >
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
     </div>
   </main>

@@ -70,7 +70,6 @@ function handleSubmit() {
           <input
             v-model="form.image"
             type="url"
-            required
             class="w-full px-3 py-2 border rounded-lg"
           >
         </div>
