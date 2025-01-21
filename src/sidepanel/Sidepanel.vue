@@ -6,7 +6,16 @@ import AddPromptForm from './AddPromptForm.vue'
 import EditPromptForm from './EditPromptForm.vue'
 
 // 修改接口以匹配数据库类型
-interface PromptCard extends Omit<Prompt, 'createdAt' | 'updatedAt' | 'notionId'> {}
+interface PromptCard {
+  id?: number
+  title: string
+  content: string
+  image: string
+  type: string
+  notionId?: string
+  createdAt: Date
+  updatedAt: Date
+}
 const { copy, copied } = useClipboard()
 const { addPrompt, deletePrompt, updatePrompt, hasData, getAllPrompts } = usePromptDb()
 const showAddForm = ref(false)
@@ -35,7 +44,7 @@ function handleCopy(content: string): void {
   copy(content)
 }
 
-const hoveredImageId = ref<number | null>(null)
+const hoveredImageId = ref<number | null | undefined>(null)
 
 function handleClickImage(image: string): void {
   window.open(image, '_blank')
@@ -179,6 +188,7 @@ function getTypeColor(type: string): string {
                   编辑
                 </button>
                 <button
+                  v-if="card.id !== undefined"
                   class="p-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-600"
                   @click="handleDeletePrompt(card.id)"
                 >
