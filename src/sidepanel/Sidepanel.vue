@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useClipboard } from '@vueuse/core'
+import Fuse from 'fuse.js'
 import { type Prompt, usePromptDb } from '../composables/usePromptDb'
 import AddPromptForm from './AddPromptForm.vue'
 import EditPromptForm from './EditPromptForm.vue'
@@ -16,20 +17,38 @@ interface PromptCard {
   createdAt: Date
   updatedAt: Date
 }
+
 const { copy, copied } = useClipboard()
 const { addPrompt, deletePrompt, updatePrompt, hasData, getAllPrompts } = usePromptDb()
 const showAddForm = ref(false)
 const editingPrompt = ref<Prompt | null>(null)
 
 const searchQuery = ref('')
-
-// 修改数据结构
 const promptList = ref<PromptCard[]>([])
+const fuse = ref<Fuse<PromptCard> | null>(null)
+
+// 搜索选项配置
+const fuseOptions = {
+  keys: ['title', 'content', 'type'],
+  threshold: 0.4, // 匹配阈值，越低越精确
+  includeScore: true,
+  shouldSort: true,
+}
+
+// 过滤后的提示词列表
+const filteredPrompts = computed(() => {
+  if (!searchQuery.value || !fuse.value)
+    return promptList.value
+  const results = fuse.value.search(searchQuery.value)
+  return results.map(result => result.item)
+})
 
 // 修改 loadPrompts 函数，加载所有提示词
 async function loadPrompts() {
   const prompts = await getAllPrompts()
   promptList.value = prompts
+  // 初始化 Fuse 实例
+  fuse.value = new Fuse(prompts, fuseOptions)
 }
 
 // 修改 onMounted 钩子
@@ -140,11 +159,11 @@ function getTypeColor(type: string): string {
       >
     </div>
 
-    <!-- 修改提示词列表的渲染 -->
+    <!-- 修改提示词列表的渲染，使用 filteredPrompts 替代 promptList -->
     <div class="mt-4">
-      <div v-if="promptList.length" class="space-y-4">
+      <div v-if="filteredPrompts.length" class="space-y-4">
         <div
-          v-for="card in promptList"
+          v-for="card in filteredPrompts"
           :key="card.id"
           class="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 group relative"
         >
